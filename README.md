@@ -1,10 +1,10 @@
 # FlightBox
 
-FlightBox is a modular, event-based processing framework for aviation-related data, writen in Python. It can be used, e.g., to receive GNSS/GPS, ADS-B and FLARM signals, process them, and provide a data stream to navigation systems, like SkyDemon.  These systems then can show surrounding aircraft positions in their moving map displays.
+FlightBox is a modular, event-based processing framework for aviation-related data, writen in Python. It can be used, e.g., to receive GNSS/GPS, ADS-B and FLARM signals, process them, and provide a data stream to navigation systems, like SkyDemon.
 
 For receiving ADS-B and FLARM signals, two DVB-T USB dongles with a certain chip set, which are compatible to the rtl-sdr tools (<http://sdr.osmocom.org/trac/wiki/rtl-sdr>), are required.
 
-Currently, the default configuration assumes that the FlightBox files are located at `/home/pi/opt/flightbox`, and OGN receiver tools in `/home/pi/opt/rtlsdr-ogn`.  There is a watchdog script called `flightbox_watchdog.py`, which starts and monitors all required processes except the `dump1090` daemon (required for receiving ADS-B data).  This watchdog can, e.g., be executed by a cronjob to automatically start the framework after boot and make sure it keeps running.
+Currently, the default configuration assumes that the FlightBox files are located at `/home/pi/opt/flightbox`, and OGN receiver tools in `/home/pi/opt/rtlsdr-ogn`.  There is a watchdog script called `flightbox_watchdog.py`, which starts and monitors all required processes except the `dump1090` daemon (required for receiving ADS-B data). 
 
 ## Requirements
 
@@ -59,7 +59,7 @@ To receive ADS-B transponder signals from other aircraft, the `input_network_sbs
 
 ### Output
 
-#### TCP Port 2000 for SkyDemon
+#### WiFi TCP Port 2000 for SkyDemon
 
 
 ### Transformation
