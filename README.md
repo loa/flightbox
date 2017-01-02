@@ -12,42 +12,19 @@ Below are requirements from the hardware and software perspective.  Note that a 
 
 ### Hardware
 
-* Computing device, like Raspberry Pi 1 or 2
-* Wifi USB dongle that supports AP mode (for providing Wifi access point), like those with RT5370 chipset
+* Computing device, like Raspberry Pi 3
 * DVB-T USB dongle that is supported by rtl-sdr (one required for ADS-B reception and another one for receiving FLARM)
-* GNSS (GPS/GLONASS) USB dongle
-  * E.g., with u-blox 7 chipset
-* Powered USB hub (to sufficiently power all USB devices)
-  * Wifi, GNSS, and one DVB-T dongle probably works without an additional hub
+* GNSS (GPS/GLONASS) UART
+  * E.g., with u-blox 8 chipset
 
 ### Software
 
 * ADS-B decoder that provides SBS1 data stream, like dump1090
 * OGN FLARM decoder
-* Everything required to set up a Wifi access point, like DHCP daemon, HostAP daemon
-  * See <http://elinux.org/RPI-Wireless-Hotspot> for instructions (NAT is not required)
-  * The network should be configured to such that the access point has the address 192.168.1.1
 * Screen (in case the watchdog script is used)
 * Python 3
-* Python packages (can be installed, e.g., via `sudo pip3 install <PACKAGENAME>`)
-  * pyserial
-  * pynmea2
-  * geopy
-  * setproctitle
-  * psutil
-  * screenutils
-
-## Modules
-
-FlightBox is implemented in a modular way to allow adding additional data sources (input modules), data processing steps (transformation modules), and output interfaces (output modules) in a simply way.  The modules that are currently implemented are described in the following subsections.
-
-The data flows through a central data structure called `data_hub`.  Input and transformation modules can inject data into the system by creating a `data_hub_item` and handing it over to the data hub.  Output and transformation modules can subscribe to certain `data_hub_item` types, like `nmea` or `sbs1`.  A `data_hub_worker` processes all incoming data hub items and forwards them to the registered output and transformation modules as desired.
 
 ### Input
-
-#### GNSS (GPS) receiver
-
-The system needs to know the current position to provide it to a connected navigation system and to calculate collision avoidance information.  To determine the current position, the `input_serial_gnss` module connects to a serial GNSS (GPS) receiver that is, e.g., connected via USB.  Each message received from the NMEA data stream is inserted into the data hub (type `nmea`).
 
 #### Open Glider Network (OGN) FLARM receiver
 
@@ -82,9 +59,8 @@ To receive ADS-B transponder signals from other aircraft, the `input_network_sbs
 
 ### Output
 
-#### AIR Connect server
+#### TCP Port 2000 for SkyDemon
 
-AIR Connect (<http://www.air-avionics.com/air/index.php/en/products/apps-and-interface-systems/air-connect-interface-for-apps>) is a popular interface for providing serial data, like FLARM NMEA messages, via a network connection to a variety of navigation systems and apps.  The `output_network_airconnect` module implements a server that allows apps to connect and receive position and traffic information from the FlightBox system.  The module consumes NMEA and FLARM messages (types `nmea` and `flarm`) from the data hub and forwards them to the connected clients.
 
 ### Transformation
 
@@ -95,7 +71,3 @@ To process all GNSS, OGN, and SBS1 data and generate a FLARM data stream (contai
 ## Installation procedure
 
 TODO
-
-## Contact
-
-In case you have any problems, questions, ideas for improvement, would like to contribute to this project, or just find this piece of software useful, please do not hesitate to get in touch with the author. :-)
