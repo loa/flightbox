@@ -3,6 +3,7 @@
 #
 
 import web
+from web import form
 
 filename = "transformation/pcasconf.ini"
 
@@ -19,20 +20,24 @@ class Index(object):
         return render.form()
 
     def POST(self):
-        form = web.input(name="Nobody", greet="Hello")
-        greeting = "%s, %s, %s" % (form.tail, form.ICAO, form.maxrange)
-        flightID = "my_Tail: '%s'" % (form.tail)
+        form = web.input(name="Nobody", greet="Hello")        
+        greeting = "%s, %s, %s" % (form.ICAO,form.modecsep,form.modecdet)
+        #flightID = "my_Tail: '%s'" % (form.tail)
         flightICAO = "my_ICAO: '%s'" % (form.ICAO)
-        maxrangeNM = "my_Range: '%s'" % (form.maxrange)
+        flightMODECsep = "modec_sep: %s" % (form.modecsep)
+        flightMODECdet = "modec_det: %s" % (form.modecdet)
+        
         target = open(filename, 'w')
         target.truncate()
         target.write("[DEFAULT]")
-        target.write("\n")
-        target.write(flightID)
+       # target.write("\n")
+       # target.write(flightID)
         target.write("\n")
         target.write(flightICAO)
         target.write("\n")        
-        target.write(maxrangeNM)
+        target.write(flightMODECsep)
+        target.write("\n")
+        target.write(flightMODECdet)
         target.write("\n")
         target.close()
         return render.index(greeting = greeting)

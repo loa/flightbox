@@ -21,10 +21,10 @@ __author__ = "Thorsten Biermann"
 __copyright__ = "Copyright 2015, Thorsten Biermann"
 __email__ = "thorsten.biermann@gmail.com"
 
+logging.basicConfig(filename='/home/pi/opt/flightbox/static/flightbox.txt',format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p',level=logging.INFO)
 #portOUT = serial.Serial('/dev/ttyUSB0', 19200)
 parser = ConfigParser()
 parser.read('/home/pi/opt/flightbox/transformation/pcasconf.ini')
-logging.basicConfig(filename='/home/pi/opt/flightbox/static/flightbox.txt',format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p',level=logging.INFO)
 
 @asyncio.coroutine
 def input_processor(loop, data_input_queue, aircraft, aircraft_lock, gnss_status, gnss_status_lock):
@@ -458,9 +458,30 @@ def generate_flarm_messages(gnss_status, aircraft):
     DISTANCE_M_MIN = -45000     #-32768 
     DISTANCE_M_MAX = 45000      #32767
 
-    my_tail = parser.get('myplane','tail')
-    my_icao = parser.get('myplane','icao')
-    
+    modec_parts = parser.get('DEFAULT','my_ICAO').split(',')
+    # get icao and tail part
+    my_icao = modec_parts[0]
+    my_tail = modec_parts[1]
+    modec_sep = float(parser.get('DEFAULT','modec_sep'))
+    modec_det = float(parser.get('DEFAULT','modec_det'))
+
+    if modec_det == 1: # ultra short
+        modec_3= -29
+        modec_2= -30
+        modec_1= -31
+    elif modec_det == 2: # short
+        modec_3= -30
+        modec_2= -31
+        modec_1= -32        
+    elif modec_det == 3: # medium
+        modec_3= -31
+        modec_2= -32
+        modec_1= -33
+    else: # long
+        modec_3= -32
+        modec_2= -33
+        modec_1= -34   
+        
     # initialize message list
     flarm_messages = []
     adsb = False
@@ -625,17 +646,17 @@ def generate_flarm_messages(gnss_status, aircraft):
         alarm_level = '0'
         alarm_type = '0'
         
-        if 0 >= float(rssi) >= -30 and -155 <= int(relative_vertical) <= 155: # +-500ft 
+        if 0 >= float(rssi) >= modec_3 and -155 <= int(relative_vertical) <= 155: # +-500ft 
             alarm_level = '3'
             alarm_typ = '2'
             alarm = True  
             relative_north = '1852' # 1.0NM 1852m
-        elif 0 >= float(rssi) >= -32 and -310 <= int(relative_vertical) <= 310: # +-1000ft 
+        elif 0 >= float(rssi) >= modec_2 and -310 <= int(relative_vertical) <= 310: # +-1000ft 
             alarm_level = '2'
             alarm_typ = '2'
             alarm = True
             relative_north = '5100' # 2.0NM 5100m
-        elif 0 >= float(rssi) >= -32.5 and -310 <= int(relative_vertical) <= 310: # +-1000ft
+        elif 0 >= float(rssi) >= modec_1 and -310 <= int(relative_vertical) <= 310: # +-1000ft
             alarm_level = '1'
             alarm_typ = '2'
             alarm = True

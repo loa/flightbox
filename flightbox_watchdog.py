@@ -61,10 +61,11 @@ def start_flightbox():
     print("Starting flightbox inside screen")
     s = DetachedScreen('flightbox', command=flightbox_command, initialize=True)
     s.disable_logs()
+    time.sleep(5.0)
 
 def restart_flightbox():
     kill_all_flightbox_processes()
-    time.sleep(10.0)
+    time.sleep(15.0)
     start_flightbox()
 
 #PCAS WEB
@@ -81,7 +82,7 @@ def kill_all_pcasweb_processes():
             print("Killing process {}".format(p.name()))
             system('sudo killall pcasweb')
             system('sudo systemctl stop pcasweb.service')
-            p.kill()
+            #p.kill()
 
 def start_pcasweb():
     global pcasweb_command
@@ -90,11 +91,12 @@ def start_pcasweb():
     system('sudo systemctl start pcasweb.service')
     #system('sudo bash /etc/init.d/pcasweb.sh start')
     #s = DetachedScreen('pcasweb', command=pcasweb_command, initialize=True)
-    #s.disable_logs()            
+    #s.disable_logs()
+    time.sleep(5.0)
 
 def restart_pcasweb():
     kill_all_pcasweb_processes()
-    time.sleep(10.0)
+    time.sleep(15.0)
     start_pcasweb()
 
 
@@ -121,19 +123,20 @@ def start_dump1090():
     print("Starting dump1090 inside screen")
     system('sudo systemctl start dump1090.service')
     #s = DetachedScreen('dump1090', command=dump1090_command, initialize=True)
-    #s.disable_logs()            
+    #s.disable_logs()
+    time.sleep(5.0)
 
 def restart_dump1090():
     kill_all_dump1090_processes()
-    time.sleep(10.0)
+    time.sleep(15.0)
     start_dump1090()
 
 
 # check if script is executed directly
 if __name__ == "__main__":
     check_flightbox_processes()
-    check_pcasweb_processes()
     check_dump1090_processes()
+    check_pcasweb_processes()
 
     is_flightbox_restart_required = False
     is_dump1090_restart_required = False
@@ -143,7 +146,6 @@ if __name__ == "__main__":
         if required_flightbox_processes[p]['status'] not in ['running', 'sleeping']:
             print("{} not running".format(p))
             is_flightbox_restart_required = True
-            is_ogn_restart_required = True
 
     for p in required_dump1090_processes.keys():
         if required_dump1090_processes[p]['status'] not in ['running', 'sleeping']:
@@ -160,12 +162,14 @@ if __name__ == "__main__":
         print('== Restarting FlightBox')
         restart_flightbox()
 
+    if is_dump1090_restart_required:
+        time.sleep(2.0)
+        print('== Restarting DUMP1090')
+        restart_dump1090()
+
     if is_pcasweb_restart_required:
         time.sleep(2.0)
         print('== Restarting PCASweb')
         restart_pcasweb()
         
-    if is_dump1090_restart_required:
-        time.sleep(2.0)
-        print('== Restarting DUMP1090')
-        restart_dump1090()
+

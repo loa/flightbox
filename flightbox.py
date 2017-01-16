@@ -12,7 +12,7 @@ import setproctitle
 import time
 
 #enable asyncio debug mode
-#os.environ['PYTHONASYNCIODEBUG'] = '1'
+os.environ['PYTHONASYNCIODEBUG'] = '1'
 
 from data_hub.data_hub_worker import DataHubWorker
 from input.test_data_generator import TestDataGenerator
@@ -140,7 +140,6 @@ def flightbox_main():
         processes.append(input_network_ogn)
 
         # instantiate GNSS (input) module
-        # input_serial_gnss = InputSerialGnss(data_hub, '/dev/cu.usbmodem1411', 9600)    # serial device on Mac OS X
         input_serial_gnss = InputSerialGnss(data_hub, '/dev/ttyAMA0', 9600)    # serial device on Linux
         processes.append(input_serial_gnss)
 
