@@ -24,6 +24,7 @@ __email__ = "thorsten.biermann@gmail.com"
 portOUT = serial.Serial('/dev/ttyUSB0', 19200)
 parser = ConfigParser()
 parser.read('/home/pi/opt/flightbox/transformation/pcasconf.ini')
+logging.basicConfig(filename='/home/pi/opt/flightbox/static/flightbox.txt',format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p',level=logging.INFO)
 
 @asyncio.coroutine
 def input_processor(loop, data_input_queue, aircraft, aircraft_lock, gnss_status, gnss_status_lock):
@@ -445,7 +446,7 @@ def handle_nmea_data(data, gnss_status, gnss_status_lock):
                     if cog_t:
                         gnss_status.course = float(cog_t)
     except ValueError:
-        logger.warn('Problem during NMEA data parsing (no fix?)')
+        logger.debug('Problem during NMEA data parsing (no fix?)')
     except:
         logger.exception(sys.exc_info()[0])
 
