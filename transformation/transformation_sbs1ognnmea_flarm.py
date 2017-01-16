@@ -21,7 +21,7 @@ __author__ = "Thorsten Biermann"
 __copyright__ = "Copyright 2015, Thorsten Biermann"
 __email__ = "thorsten.biermann@gmail.com"
 
-portOUT = serial.Serial('/dev/ttyUSB0', 19200)
+#portOUT = serial.Serial('/dev/ttyUSB0', 19200)
 parser = ConfigParser()
 parser.read('/home/pi/opt/flightbox/transformation/pcasconf.ini')
 logging.basicConfig(filename='/home/pi/opt/flightbox/static/flightbox.txt',format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p',level=logging.INFO)
@@ -489,7 +489,7 @@ def generate_flarm_messages(gnss_status, aircraft):
         identifier = ''
 
         flarm_message_laa = pynmea2.ProprietarySentence('F', ['LAU', rx, tx, gps, power, alarm_level, relative_bearing, alarm_type, relative_vertical, relative_distance, identifier])
-        portOUT.write(str(flarm_message_laa).encode())
+        #portOUT.write(str(flarm_message_laa).encode())
         flarm_messages.append(str(flarm_message_laa))
         logger.debug('FLARM no plane message: {}'.format(str(flarm_message_laa)))
 
@@ -574,7 +574,7 @@ def generate_flarm_messages(gnss_status, aircraft):
             alarm_typ = '0'
         
         flarm_message_laa = pynmea2.ProprietarySentence('F', ['LAA', alarm_level, relative_north, relative_east, relative_vertical, identifier_type, identifier, track, turn_rate, ground_speed, climb_rate, acft_type])
-        portOUT.write(str(flarm_message_laa).encode())
+        #portOUT.write(str(flarm_message_laa).encode())
         flarm_messages.append(str(flarm_message_laa))
         logger.debug('FLARM message: {}'.format(str(flarm_message_laa)))
 
@@ -601,7 +601,7 @@ def generate_flarm_messages(gnss_status, aircraft):
             identifier = aircraft.identifier
 
             flarm_message_laa = pynmea2.ProprietarySentence('F', ['LAU', rx, tx, gps, power, alarm_level, relative_bearing, alarm_type, relative_vertical, relative_distance, identifier])
-            portOUT.write(str(flarm_message_laa).encode())
+            #portOUT.write(str(flarm_message_laa).encode())
             flarm_messages.append(str(flarm_message_laa))
             logger.debug('FLARM message: {}'.format(str(flarm_message_laa)))
 
@@ -658,7 +658,7 @@ def generate_flarm_messages(gnss_status, aircraft):
         
         
         flarm_message_laa = pynmea2.ProprietarySentence('F', ['LAA', alarm_level, relative_north, relative_east, relative_vertical, identifier_type, identifier, track, turn_rate, ground_speed, climb_rate, acft_type])
-        portOUT.write(str(flarm_message_laa).encode())
+        #portOUT.write(str(flarm_message_laa).encode())
         flarm_messages.append(str(flarm_message_laa))
         logger.debug('FLARM message modeac: {}'.format(str(flarm_message_laa)))
 
