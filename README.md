@@ -33,4 +33,4 @@ To process all GNSS, OGN, and SBS1 data and generate a FLARM data stream (TCP Po
 
 ## Installation procedure
 
-TODO
+https://github.com/biturbo/flightbox-setup
