@@ -3,56 +3,13 @@
 import math
 import smbus
 from time import sleep
-import utils.BMP280 as BMP280
-
-__author__ = "Thorsten Biermann"
-__copyright__ = "Copyright 2015, Thorsten Biermann"
-__email__ = "thorsten.biermann@gmail.com"
+import BME280 as BME280
 
 def altimeter():
-    sensor = BMP280.BMP280()
-    altitude = sensor.read_altitude()
+    temperature,pressure,altitude = BME280.readBME280All()
     return altitude
 
 #print('Altitude = {0:0f} m'.format(altimeter()))
-
-def altimeter_BMP085():
-    sensor = BMP085.BMP085()
-    altitude = sensor.read_altitude()
-    return altitude
-
-#print('Altitude = {0:0f} m'.format(altimeter()))
-
-def altimeter_MPU():
-    """
-    :return: Barometric hight in meter
-    """
-    # Get I2C bus
-##    try:
-    bus = smbus.SMBus(1)
-    bus.write_byte_data(0x60, 0x26, 0xB9)
-    bus.write_byte_data(0x60, 0x13, 0x07)
-    bus.write_byte_data(0x60, 0x26, 0xB9)
-##    except IOError :
-##      if not math.isnan(gpsd.fix.altitude):
-##        altitude = gpsd.fix.altitude #Meter
-##      else:
-##        altitude = self.my_elevation
-##      return altitude
-##    else:
-    sleep(1)
-    data = bus.read_i2c_block_data(0x60, 0x00, 6)
-    tHeight = ((data[1] * 65536) + (data[2] * 256) + (data[3] & 0xF0)) / 16
-    temp = ((data[4] * 256) + (data[5] & 0xF0)) / 16
-    altitude = tHeight / 16.0
-    cTemp = temp / 16.0
-      #bus.write_byte_data(0x60, 0x26, 0x39)
-      #sleep(1)
-      #data = bus.read_i2c_block_data(0x60, 0x00, 4)
-      #pres = ((data[1] * 65536) + (data[2] * 256) + (data[3] & 0xF0)) / 16
-      #pressure = (pres / 4.0) / 100.0
-
-    return altitude
 
 def initial_bearing(lat1_deg, lon1_deg, lat2_deg, lon2_deg):
     """
