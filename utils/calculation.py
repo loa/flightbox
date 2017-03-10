@@ -3,7 +3,7 @@
 import math
 import smbus
 from time import sleep
-import BME280 as BME280
+import utils.BME280 as BME280
 
 def altimeter():
     temperature,pressure,altitude = BME280.readBME280All()
