@@ -174,37 +174,47 @@ def handle_ogn_data(data, aircraft, aircraft_lock, gnss_status):
     # check if own location is known (required for FLARM position calculation)
     if gnss_status.longitude and gnss_status.latitude:
         try:
-            # 0.2.4 -> ICA3D1B5A>APRS,qAR:/133959h0107.07N/00146.75W'259/067/A=003083 !W57! id053D1B5A -039fpm +0.1rot 8.2dB 1e +4.8kHz gps3x3 s6.01 h32 rDD04AF
 
-            # 0.2.5 -> FLRDD50E2>APRS,qAR:/083638h0036.43N\00432.58W^180/000/A=001410 !W16! id22DD50E2 +198fpm +0.0rot 40.8dB 0e +1.2kHz gps8x12
-            # 0.2.4 -> FLRDD50E2>APRS,qAR:/084436h0036.43N\00432.58W^000/001/A=001364 !W57! id22DD50E2 -019fpm +0.0rot 41.0dB 0e +1.7kHz gps7x10            
-
-            # 0.2.5 -> FlightBox>APRS:/083742h0000.00SI00000.00W&/A=000000 v0.2.5.ARM CPU:0.9 RAM:394.2/970.5MB NTP:3.8ms/-8.1ppm +58.5C RF:+57+0.7ppm/+13.6dB 
-            # 0.2.4 -> FlightBox>APRS,qAR:/084735h0000.00SI00000.00W&000/000/A=000000 v0.2.4.ARM CPU:1.2 RAM:389.6/970.5MB NTP:0.2ms/-8.4ppm +61.2C RF:+9.3dB
 
             data_parts = data.split(' ')
 
-            # get first part
+            # get first and second part
             beacon_data = data_parts[0]
-
+			geo_data = data_parts[1]
+			
             # get remaining parts
-            position_data = data_parts[1:len(data_parts)]
-
+            position_data = data_parts[2:len(data_parts)]
+			
+			# beacon
             m = re.match(r"^(.+?)>APRS,(.+?):/(\d{6})+h(\d{4}\.\d{2})(N|S)(.)(\d{5}\.\d{2})(E|W)(.)((\d{3})/(\d{3}))?/A=(\d{6})", beacon_data)            
+            
+			# position precision enhancement 
+            regex = r"(\d+)(\d+)"
+            g = re.search(regex, geo_data)
 
+            if g:
+                lat_min_3   = float(g.group(1))/1000
+                lon_min_3   = float(g.group(2))/1000
+                
+                logger.info('lat3: {}'.format(g.group(1)))
+                logger.info('lon3: {}'.format(g.group(2)))
+                
+            else:
+                logger.info('Problem parsing OGN geo data: {}'.format(geo_data))
+				
             if m:
                 identifier = m.group(1)
                 receiver_name = m.group(2)
                 timestamp = m.group(3)
 
-                latitude = utils.conversion.ogn_coord_to_degrees(float(m.group(4)))
+                latitude = utils.conversion.ogn_coord_to_degrees(float(m.group(4)) + float(lat_min_3))
 
                 if m.group(5) == "S":
                     latitude = -1.0 * latitude
 
                 symbol_table = m.group(6)
 
-                longitude = utils.conversion.ogn_coord_to_degrees(float(m.group(7)))
+                longitude = utils.conversion.ogn_coord_to_degrees(float(m.group(7)) + float(lon_min_3))
                 if m.group(8) == "W":
                     longitude = -1.0 * longitude
 
