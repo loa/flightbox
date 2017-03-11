@@ -177,8 +177,8 @@ def handle_ogn_data(data, aircraft, aircraft_lock, gnss_status):
             data_parts = data.split(' ')
 
             # get first and second part
-			beacon_data = data_parts[0]
-			geo_data = data_parts[1]
+            beacon_data = data_parts[0]
+            geo_data = data_parts[1]
 			
             # get remaining parts
             position_data = data_parts[2:len(data_parts)]
