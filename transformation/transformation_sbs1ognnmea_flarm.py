@@ -174,12 +174,10 @@ def handle_ogn_data(data, aircraft, aircraft_lock, gnss_status):
     # check if own location is known (required for FLARM position calculation)
     if gnss_status.longitude and gnss_status.latitude:
         try:
-
-
             data_parts = data.split(' ')
 
             # get first and second part
-            beacon_data = data_parts[0]
+			beacon_data = data_parts[0]
 			geo_data = data_parts[1]
 			
             # get remaining parts
