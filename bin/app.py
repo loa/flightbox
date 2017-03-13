@@ -40,7 +40,13 @@ class Index(object):
         target.write(flightMODECdet)
         target.write("\n")
         target.close()
-        return render.index(greeting = greeting)
+		
+        for i in range(1,10):
+           print 'REBOOT',i
+           #Do your code here
+           time.sleep(1)
+           os.system("sudo reboot")
+		   
     
 if __name__ == "__main__":
     app.run()

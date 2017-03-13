@@ -17,9 +17,9 @@ from data_hub.data_hub_item import DataHubItem
 from transformation.transformation_module import TransformationModule
 import utils.conversion, utils.calculation
 
-__author__ = "Thorsten Biermann"
-__copyright__ = "Copyright 2015, Thorsten Biermann"
-__email__ = "thorsten.biermann@gmail.com"
+__author__ = "Serge Guex"
+__copyright__ = "Copyright 2017"
+__email__ = ""
 
 logging.basicConfig(filename='/home/pi/opt/flightbox/static/flightbox.txt',format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p',level=logging.INFO)
 #portOUT = serial.Serial('/dev/ttyUSB0', 19200)
@@ -172,6 +172,8 @@ def handle_ogn_data(data, aircraft, aircraft_lock, gnss_status):
     logger.debug('Processing OGN data: {}'.format(data))
 
     # check if own location is known (required for FLARM position calculation)
+
+    #data_parts: ['FLRDD50E2>APRS,qAR:/121255h0036.43N\\00432.58W^000/000/A=001397', '!W39!', 'id22DD50E2', '-039fpm', '+0.0rot', '40.0dB', '0e', '-1.5kHz', 'gps1x2']
     if gnss_status.longitude and gnss_status.latitude:
         try:
             data_parts = data.split(' ')
@@ -228,10 +230,10 @@ def handle_ogn_data(data, aircraft, aircraft_lock, gnss_status):
                         aircraft[identifier].h_speed = h_speed
                         aircraft[identifier].course = track
 
-                    logger.debug('{}: lat={}, lon={}, alt={}, course={:d}, h_speed={:d}'.format(identifier, aircraft[identifier].latitude, aircraft[identifier].longitude, aircraft[identifier].altitude, aircraft[identifier].course, aircraft[identifier].h_speed))
+#                    logger.debug('{}: lat={}, lon={}, alt={}, course={:d}, h_speed={:d}'.format(identifier, aircraft[identifier].latitude, aircraft[identifier].longitude, aircraft[identifier].altitude, aircraft[identifier].course, aircraft[identifier].h_speed))
 
                 else:
-                    logger.debug('Discarding receiver beacon')
+                    logger.info('Discarding receiver beacon')
 
             else:
                 logger.warn('Problem parsing OGN beacon data: {}'.format(beacon_data))
@@ -406,7 +408,7 @@ def handle_nmea_data(data, gnss_status, gnss_status_lock):
         elif data.startswith('$GPGLL'):
             message = pynmea2.parse(data)
 
-            logger.debug('GPGLL: lat={} {}, lon={} {}, status={}, pos_mode={}'.format(message.lat, message.lat_dir, message.lon, message.lon_dir, message.status, message.faa_mode))
+#            logger.debug('GPGLL: lat={} {}, lon={} {}, status={}, pos_mode={}'.format(message.lat, message.lat_dir, message.lon, message.lon_dir, message.status, message.faa_mode))
 
             with gnss_status_lock:
                 lat = utils.conversion.nmea_coord_to_degrees(float(message.lat))
@@ -431,7 +433,7 @@ def handle_nmea_data(data, gnss_status, gnss_status_lock):
                 h_speed_kph = fields[7]
                 pos_mode = fields[9]
 
-                logger.debug('GPVTG: cog_t={}, cog_m={}, h_speed_kt={}, h_speed_kph={}, pos_mode={}'.format(cog_t, cog_m, h_speed_kt, h_speed_kph, pos_mode))
+#                logger.debug('GPVTG: cog_t={}, cog_m={}, h_speed_kt={}, h_speed_kph={}, pos_mode={}'.format(cog_t, cog_m, h_speed_kt, h_speed_kph, pos_mode))
 
                 with gnss_status_lock:
                     # check if values are available before converting
@@ -440,7 +442,7 @@ def handle_nmea_data(data, gnss_status, gnss_status_lock):
                     if cog_t:
                         gnss_status.course = float(cog_t)
     except ValueError:
-        logger.debug('Problem during NMEA data parsing (no fix?)')
+        logger.info('Problem during NMEA data parsing (no fix?)')
     except:
         logger.exception(sys.exc_info()[0])
 
@@ -484,31 +486,31 @@ def generate_flarm_messages(gnss_status, aircraft):
         return None
     
     # check if plans are in sight
-    if aircraft.identifier == 'AAAAAA': #no plane in sight
-        """ generate PFLAA message """
-        # PFLAU,<RX>,<TX>,<GPS>,<Power>,<AlarmLevel>,<RelativeBearing>,<AlarmType>,<RelativeVertical>,<RelativeDistance>,<ID>
-        # indicate number of received devices
-        rx = '0'
-        # indicate no transmission
-        tx = '0'
-        # indicate airborne 3D fix
-        gps = '2'
-        # indicate power OK
-        power = '1'
-        # indicate no collision within next 18 seconds
-        alarm_level = '0'
-        relative_bearing = ''
-        alarm_type = '0'
-        relative_vertical = 0
-        relative_distance = ''
-        identifier = ''
+#    if aircraft.identifier == 'AAAAAA': #no plane in sight
+#        """ generate PFLAA message """
+#        # PFLAU,<RX>,<TX>,<GPS>,<Power>,<AlarmLevel>,<RelativeBearing>,<AlarmType>,<RelativeVertical>,<RelativeDistance>,<ID>
+#        # indicate number of received devices
+#        rx = '0'
+#        # indicate no transmission
+#        tx = '0'
+#        # indicate airborne 3D fix
+#        gps = '2'
+#        # indicate power OK
+#        power = '1'
+#        # indicate no collision within next 18 seconds
+#        alarm_level = '0'
+#        relative_bearing = ''
+#        alarm_type = '0'
+#        relative_vertical = 0
+#        relative_distance = ''
+#        identifier = ''
 
-        flarm_message_laa = pynmea2.ProprietarySentence('F', ['LAU', rx, tx, gps, power, alarm_level, relative_bearing, alarm_type, relative_vertical, relative_distance, identifier])
-        #portOUT.write(str(flarm_message_laa).encode())
-        flarm_messages.append(str(flarm_message_laa))
-        logger.debug('FLARM no plane message: {}'.format(str(flarm_message_laa)))
+#        flarm_message_laa = pynmea2.ProprietarySentence('F', ['LAU', rx, tx, gps, power, alarm_level, relative_bearing, alarm_type, relative_vertical, relative_distance, identifier])
+#        #portOUT.write(str(flarm_message_laa).encode())
+#        flarm_messages.append(str(flarm_message_laa))
+#        logger.debug('FLARM no plane message: {}'.format(str(flarm_message_laa)))
 
-    elif gnss_status.longitude and gnss_status.latitude and aircraft.longitude and aircraft.latitude:
+    if gnss_status.longitude and gnss_status.latitude and aircraft.longitude and aircraft.latitude:
         """ generate PFLAA message ADS-B"""
         # PFLAA,<AlarmLevel>,<RelativeNorth>,<RelativeEast>, <RelativeVertical>,<IDType>,<ID>,<Track>,<TurnRate>,<GroundSpeed>, <ClimbRate>,<AcftType>
         adsb = True
@@ -534,7 +536,7 @@ def generate_flarm_messages(gnss_status, aircraft):
         relative_north = '{:.0f}'.format(min(max(distance_north_m, DISTANCE_M_MIN), DISTANCE_M_MAX))
         relative_east = '{:.0f}'.format(min(max(distance_east_m, DISTANCE_M_MIN), DISTANCE_M_MAX))
 
-        logger.debug('{}: dist={:.0f} m, initial_bearing={:.0f} deg, final_bearing={:.0f} deg, dist_n={:.0f} m, dist_e={:.0f} m'.format(aircraft.identifier, distance_m, initial_bearing, final_bearing, distance_north_m, distance_east_m))
+#        logger.debug('{}: dist={:.0f} m, initial_bearing={:.0f} deg, final_bearing={:.0f} deg, dist_n={:.0f} m, dist_e={:.0f} m'.format(aircraft.identifier, distance_m, initial_bearing, final_bearing, distance_north_m, distance_east_m))
 
         relative_vertical = 0
         if gnss_status.altitude and aircraft.altitude:
@@ -548,7 +550,10 @@ def generate_flarm_messages(gnss_status, aircraft):
         identifier = aircraft.identifier
         if aircraft.callsign:
             identifier_type = '1'
-            identifier = aircraft.identifier+"!"+aircraft.callsign
+            #identifier = aircraft.identifier+"!"+aircraft.callsign
+        elif aircraft.datatype == 'F':
+            identifier_type = '2'
+            #identifier = aircraft.identifier+"!"+"Mode-F"
             
         track = ''
         if aircraft.course is not None:
@@ -574,32 +579,32 @@ def generate_flarm_messages(gnss_status, aircraft):
         
         if 0 <= distance_m <= 1852 and -155 <= int(relative_vertical) <= 155: # 1.0NM / +-500ft
             alarm_level = '3'
-            alarm_typ = '2'
+            alarm_type = '2'
             alarm = True
         elif 0 <= distance_m <= 5100 and -310 <= int(relative_vertical) <= 310: # 2.0NM / +-1000ft
             alarm_level = '2'
-            alarm_typ = '2'
+            alarm_type = '2'
             alarm = True
         elif 0 <= distance_m <= 9700 and -620 <= int(relative_vertical) <= 620: # 5.0NM / +-2000ft
             alarm_level = '1'
-            alarm_typ = '2'
+            alarm_type = '2'
             alarm = True
         else:
             alarm_level = '0'
-            alarm_typ = '0'
+            alarm_type = '0'
         
         flarm_message_laa = pynmea2.ProprietarySentence('F', ['LAA', alarm_level, relative_north, relative_east, relative_vertical, identifier_type, identifier, track, turn_rate, ground_speed, climb_rate, acft_type])
         #portOUT.write(str(flarm_message_laa).encode())
         flarm_messages.append(str(flarm_message_laa))
-        logger.debug('FLARM message: {}'.format(str(flarm_message_laa)))
+        logger.info('ADSB: {}'.format(str(flarm_message_laa)))
 
-        if gnss_status.altitude:
-#        if alarm == True:
+#        if gnss_status.altitude:
+        if alarm == True:
             """ generate PFLAU message """
             # PFLAU,<RX>,<TX>,<GPS>,<Power>,<AlarmLevel>,<RelativeBearing>,<AlarmType>,<RelativeVertical>,<RelativeDistance>,<ID>
 
             # indicate number of received devices
-            rx = '0'
+            rx = '1'
             # indicate no transmission
             tx = '0'
             # indicate airborne 3D fix
@@ -612,13 +617,31 @@ def generate_flarm_messages(gnss_status, aircraft):
                 relative_bearing = '{:.0f}'.format(min(max(utils.calculation.relative_bearing(initial_bearing, gnss_status.course), -180), 180))
             # set relative distance to target
             relative_distance = '{:.0f}'.format(min(max(distance_m, 0), 2147483647))
-            # indicate ICAO identifier
-            identifier = aircraft.identifier
 
             flarm_message_laa = pynmea2.ProprietarySentence('F', ['LAU', rx, tx, gps, power, alarm_level, relative_bearing, alarm_type, relative_vertical, relative_distance, identifier])
-            #portOUT.write(str(flarm_message_laa).encode())
             flarm_messages.append(str(flarm_message_laa))
-            logger.debug('FLARM message: {}'.format(str(flarm_message_laa)))
+            logger.info('ADSB: {}'.format(str(flarm_message_laa)))
+            
+        else:
+            rx = '1'
+            # indicate no transmission
+            tx = '0'
+            # indicate airborne 3D fix
+            gps = '2'
+            # indicate power OK
+            power = '1'
+            # indicate no collision within next 18 seconds
+            alarm_level = '0'
+            relative_bearing = ''
+            alarm_type = '0'
+            relative_vertical = '0'
+            relative_distance = ''
+            identifier = ''
+
+            flarm_message_laa = pynmea2.ProprietarySentence('F', ['LAU', rx, tx, gps, power, alarm_level, relative_bearing, alarm_type, relative_vertical, relative_distance, identifier])
+
+            flarm_messages.append(str(flarm_message_laa))
+            logger.debug('No plane message: {}'.format(str(flarm_message_laa)))
 
 
     # check if positions are known
@@ -642,47 +665,47 @@ def generate_flarm_messages(gnss_status, aircraft):
         
         if 0 >= float(rssi) >= modec_3 and -155 <= int(relative_vertical) <= 155: # +-500ft 
             alarm_level = '3'
-            alarm_typ = '2'
+            alarm_type = '2'
             alarm = True  
             relative_north = '1852' # 1.0NM 1852m
         elif 0 >= float(rssi) >= modec_2 and -310 <= int(relative_vertical) <= 310: # +-1000ft 
             alarm_level = '2'
-            alarm_typ = '2'
+            alarm_type = '2'
             alarm = True
             relative_north = '5100' # 2.0NM 5100m
         elif 0 >= float(rssi) >= modec_1 and -310 <= int(relative_vertical) <= 310: # +-1000ft
             alarm_level = '1'
-            alarm_typ = '2'
+            alarm_type = '2'
             alarm = True
             relative_north = '9700' # 5.0NM 9700m            
         else:
             alarm_level = '0'
-            alarm_typ = '0'
+            alarm_type = '0'
             return None
             #relative_north = '29100' # 15.0NM 29100m
 
         relative_east = ''
         # indicate ICAO identifier
-        identifier_type = '1'
         identifier = aircraft.identifier
+        #identifier = aircraft.identifier+"!"+"Mode-C"
+        identifier_type = '1'
         track = ''
         turn_rate = ''
         ground_speed = ''
         climb_rate = ''
         acft_type = str(aircraft.aircraft_type)
         
-        
         flarm_message_laa = pynmea2.ProprietarySentence('F', ['LAA', alarm_level, relative_north, relative_east, relative_vertical, identifier_type, identifier, track, turn_rate, ground_speed, climb_rate, acft_type])
         #portOUT.write(str(flarm_message_laa).encode())
         flarm_messages.append(str(flarm_message_laa))
-        logger.debug('FLARM message modeac: {}'.format(str(flarm_message_laa)))
+        logger.info('Mode-C: {}'.format(str(flarm_message_laa)))
 
         if alarm == True: 
             """ generate PFLAU message """
             # PFLAU,<RX>,<TX>,<GPS>,<Power>,<AlarmLevel>,<RelativeBearing>,<AlarmType>,<RelativeVertical>,<RelativeDistance>,<ID>
 
             # indicate number of received devices
-            rx = '0'
+            rx = '1'
             # indicate no transmission
             tx = '0'
             # indicate airborne 3D fix
@@ -695,7 +718,7 @@ def generate_flarm_messages(gnss_status, aircraft):
 
             flarm_message_laa = pynmea2.ProprietarySentence('F', ['LAU', rx, tx, gps, power, alarm_level, relative_bearing, alarm_type, relative_vertical, relative_north, identifier])
             flarm_messages.append(str(flarm_message_laa))
-            logger.debug('FLARM message: {}'.format(str(flarm_message_laa)))        
+            logger.info('Mode-C: {}'.format(str(flarm_message_laa)))    
 
 
     if len(flarm_messages) > 0:
