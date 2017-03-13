@@ -178,41 +178,27 @@ def handle_ogn_data(data, aircraft, aircraft_lock, gnss_status):
 
             # get first and second part
             beacon_data = data_parts[0]
-            geo_data = data_parts[1]
 			
             # get remaining parts
-            position_data = data_parts[2:len(data_parts)]
+            position_data = data_parts[1:len(data_parts)]
 			
 			# beacon
             m = re.match(r"^(.+?)>APRS,(.+?):/(\d{6})+h(\d{4}\.\d{2})(N|S)(.)(\d{5}\.\d{2})(E|W)(.)((\d{3})/(\d{3}))?/A=(\d{6})", beacon_data)            
-            
-			# position precision enhancement 
-            regex = r"(\d+)(\d+)"
-            g = re.search(regex, geo_data)
-
-            if g:
-                lat_min_3   = float(g.group(1))/1000
-                lon_min_3   = float(g.group(2))/1000
-                
-                logger.info('lat3: {}'.format(g.group(1)))
-                logger.info('lon3: {}'.format(g.group(2)))
-                
-            else:
-                logger.info('Problem parsing OGN geo data: {}'.format(geo_data))
-				
+            			
             if m:
-                identifier = m.group(1)
+                ida = m.group(1)
+				identifier = ida[-6:]
                 receiver_name = m.group(2)
                 timestamp = m.group(3)
 
-                latitude = utils.conversion.ogn_coord_to_degrees(float(m.group(4)) + float(lat_min_3))
+                latitude = utils.conversion.ogn_coord_to_degrees(float(m.group(4)))
 
                 if m.group(5) == "S":
                     latitude = -1.0 * latitude
 
                 symbol_table = m.group(6)
 
-                longitude = utils.conversion.ogn_coord_to_degrees(float(m.group(7)) + float(lon_min_3))
+                longitude = utils.conversion.ogn_coord_to_degrees(float(m.group(7)))
                 if m.group(8) == "W":
                     longitude = -1.0 * longitude
 
