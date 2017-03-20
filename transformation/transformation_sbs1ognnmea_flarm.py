@@ -188,11 +188,19 @@ def handle_ogn_data(data, aircraft, aircraft_lock, gnss_status):
             m = re.match(r"^(.+?)>APRS,(.+?):/(\d{6})+h(\d{4}\.\d{2})(N|S)(.)(\d{5}\.\d{2})(E|W)(.)((\d{3})/(\d{3}))?/A=(\d{6})", beacon_data)            
             			
             if m:
+<<<<<<< HEAD
 				ida = m.group(1)
 				identifier = ida[-6:]
 				receiver_name = m.group(2)
 				timestamp = m.group(3)
 				
+=======
+                ida = m.group(1)
+		identifier = ida[-6:]
+                receiver_name = m.group(2)
+                timestamp = m.group(3)
+
+>>>>>>> origin/master
                 latitude = utils.conversion.ogn_coord_to_degrees(float(m.group(4)))
 
                 if m.group(5) == "S":
