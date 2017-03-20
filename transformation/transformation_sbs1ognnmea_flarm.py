@@ -189,7 +189,7 @@ def handle_ogn_data(data, aircraft, aircraft_lock, gnss_status):
             			
             if m:
                 ida = m.group(1)
-				identifier = ida[-6:]
+		identifier = ida[-6:]
                 receiver_name = m.group(2)
                 timestamp = m.group(3)
 
