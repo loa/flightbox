@@ -188,11 +188,11 @@ def handle_ogn_data(data, aircraft, aircraft_lock, gnss_status):
             m = re.match(r"^(.+?)>APRS,(.+?):/(\d{6})+h(\d{4}\.\d{2})(N|S)(.)(\d{5}\.\d{2})(E|W)(.)((\d{3})/(\d{3}))?/A=(\d{6})", beacon_data)            
             			
             if m:
-                ida = m.group(1)
+				ida = m.group(1)
 				identifier = ida[-6:]
-                receiver_name = m.group(2)
-                timestamp = m.group(3)
-
+				receiver_name = m.group(2)
+				timestamp = m.group(3)
+				
                 latitude = utils.conversion.ogn_coord_to_degrees(float(m.group(4)))
 
                 if m.group(5) == "S":
@@ -546,14 +546,16 @@ def generate_flarm_messages(gnss_status, aircraft):
                 relative_vertical = '{:.0f}'.format(min(max(utils.conversion.feet_to_meters(aircraft.altitude) - utils.calculation.altimeter(), DISTANCE_M_MIN), DISTANCE_M_MAX))
                 #relative_vertical = '{:.0f}'.format(min(max(utils.conversion.feet_to_meters(aircraft.altitude) - sensor.read_altitude(), DISTANCE_M_MIN), DISTANCE_M_MAX)) 
         # indicate ICAO identifier
-        identifier_type = '1'
-        identifier = aircraft.identifier
+		
+		identifier_type = '1'
+		identifier = aircraft.identifier
+		
         if aircraft.callsign:
             identifier_type = '1'
-            #identifier = aircraft.identifier+"!"+aircraft.callsign
+            identifier = aircraft.identifier+"!"+aircraft.callsign
         elif aircraft.datatype == 'F':
             identifier_type = '2'
-            #identifier = aircraft.identifier+"!"+"Mode-F"
+            identifier = aircraft.identifier+"!"+"Mode-F"
             
         track = ''
         if aircraft.course is not None:
@@ -592,7 +594,11 @@ def generate_flarm_messages(gnss_status, aircraft):
         else:
             alarm_level = '0'
             alarm_type = '0'
-        
+
+        if alarm == True:
+            identifier = aircraft.identifier
+
+			
         flarm_message_laa = pynmea2.ProprietarySentence('F', ['LAA', alarm_level, relative_north, relative_east, relative_vertical, identifier_type, identifier, track, turn_rate, ground_speed, climb_rate, acft_type])
         #portOUT.write(str(flarm_message_laa).encode())
         flarm_messages.append(str(flarm_message_laa))
@@ -658,6 +664,9 @@ def generate_flarm_messages(gnss_status, aircraft):
 
         #aircraft.signallevel = 0.000332
         rssi = round(utils.conversion.db_to_rssi(aircraft.signallevel),2)
+		
+		identifier = aircraft.identifier+"!"+"Mode-C"
+		identifier_type = '1'
 
         alarm = False
         alarm_level = '0'
@@ -683,6 +692,9 @@ def generate_flarm_messages(gnss_status, aircraft):
             alarm_type = '0'
             return None
             #relative_north = '29100' # 15.0NM 29100m
+			
+		if alarm == True:
+			identifier = aircraft.identifier
 
         relative_east = ''
         # indicate ICAO identifier
