@@ -188,10 +188,10 @@ def handle_ogn_data(data, aircraft, aircraft_lock, gnss_status):
             m = re.match(r"^(.+?)>APRS,(.+?):/(\d{6})+h(\d{4}\.\d{2})(N|S)(.)(\d{5}\.\d{2})(E|W)(.)((\d{3})/(\d{3}))?/A=(\d{6})", beacon_data)            
             			
             if m:
-				ida = m.group(1)
-				identifier = ida[-6:]
-				receiver_name = m.group(2)
-				timestamp = m.group(3)
+                ida = m.group(1)
+                identifier = ida[-6:]
+                receiver_name = m.group(2)
+                timestamp = m.group(3)
 
                 latitude = utils.conversion.ogn_coord_to_degrees(float(m.group(4)))
 
@@ -547,8 +547,8 @@ def generate_flarm_messages(gnss_status, aircraft):
                 #relative_vertical = '{:.0f}'.format(min(max(utils.conversion.feet_to_meters(aircraft.altitude) - sensor.read_altitude(), DISTANCE_M_MIN), DISTANCE_M_MAX)) 
         # indicate ICAO identifier
 		
-		identifier_type = '1'
-		identifier = aircraft.identifier
+        identifier_type = '1'
+        identifier = aircraft.identifier
 		
         if aircraft.callsign:
             identifier_type = '1'
@@ -665,8 +665,8 @@ def generate_flarm_messages(gnss_status, aircraft):
         #aircraft.signallevel = 0.000332
         rssi = round(utils.conversion.db_to_rssi(aircraft.signallevel),2)
 		
-		identifier = aircraft.identifier+"!"+"Mode-C"
-		identifier_type = '1'
+        identifier = aircraft.identifier+"!"+"Mode-C"
+        identifier_type = '1'
 
         alarm = False
         alarm_level = '0'
@@ -693,8 +693,8 @@ def generate_flarm_messages(gnss_status, aircraft):
             return None
             #relative_north = '29100' # 15.0NM 29100m
 			
-		if alarm == True:
-			identifier = aircraft.identifier
+        if alarm == True:
+            identifier = aircraft.identifier
 
         relative_east = ''
         # indicate ICAO identifier
