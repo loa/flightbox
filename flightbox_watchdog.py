@@ -14,6 +14,13 @@ __copyright__ = "Copyright 2015, Thorsten Biermann"
 __email__ = "thorsten.biermann@gmail.com"
 
 
+# define DUMP1090 processes that must be running
+required_dump1090_processes = {}
+required_dump1090_processes['dump1090'] = {'status': None}
+
+# define command for starting dump1090
+dump1090_command = 'sudo systemctl start dump1090'
+
 # define flightbox processes that must be running
 required_flightbox_processes = {}
 required_flightbox_processes['flightbox'] = {'status': None}
@@ -27,15 +34,8 @@ required_flightbox_processes['flightbox_input_serial_gnss'] = {'status': None}
 # define command for starting flightbox
 flightbox_command = '/home/pi/opt/flightbox/flightbox.py'
 
-# define command for starting dump1090
-dump1090_command = 'sudo systemctl start dump1090.service'
-
 # define command for starting pcasweb
 pcasweb_command = 'sudo systemctl start pcasweb.service'
-
-# define DUMP1090 processes that must be running
-required_dump1090_processes = {}
-required_dump1090_processes['dump1090'] = {'status': None}
 
 # define pcasweb processes that must be running
 required_pcasweb_processes = {}
@@ -134,12 +134,12 @@ def restart_dump1090():
 
 # check if script is executed directly
 if __name__ == "__main__":
-    check_flightbox_processes()
     check_dump1090_processes()
+    check_flightbox_processes()
     check_pcasweb_processes()
 
-    is_flightbox_restart_required = False
     is_dump1090_restart_required = False
+    is_flightbox_restart_required = False
     is_pcasweb_restart_required = False
 
     for p in required_flightbox_processes.keys():
@@ -157,15 +157,15 @@ if __name__ == "__main__":
             print("{} not running".format(p))
             is_pcasweb_restart_required = True
 
+    if is_dump1090_restart_required:
+        time.sleep(2.0)
+        print('== Restarting DUMP1090')
+        restart_dump1090()			
+			
     if is_flightbox_restart_required:
         time.sleep(2.0)
         print('== Restarting FlightBox')
         restart_flightbox()
-
-    if is_dump1090_restart_required:
-        time.sleep(2.0)
-        print('== Restarting DUMP1090')
-        restart_dump1090()
 
     if is_pcasweb_restart_required:
         time.sleep(2.0)

@@ -3,10 +3,10 @@
 import math
 import smbus
 from time import sleep
-import utils.BME280 as BME280
+import utils.BMP180 as BMP180
 
 def altimeter():
-    temperature,pressure,altitude = BME280.readBME280All()
+    temperature,pressure,altitude = BMP180.readBmp180All()
     return altitude
 
 #print('Altitude = {0:0f} m'.format(altimeter()))
