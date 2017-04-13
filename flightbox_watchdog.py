@@ -66,10 +66,10 @@ def kill_all_flightbox_processes():
 def start_flightbox():
     global flightbox_command
 
-    print("Starting flightbox and Wifi")
+    print("Starting flightbox")
     s = DetachedScreen('flightbox', command=flightbox_command, initialize=True)
     s.disable_logs()
-    time.sleep(5.0)
+    time.sleep(15.0)
 
 def restart_flightbox():
     kill_all_flightbox_processes()
@@ -102,7 +102,7 @@ def start_pcasweb():
 
 def restart_pcasweb():
     kill_all_pcasweb_processes()
-    time.sleep(1.0)
+    time.sleep(5.0)
     start_pcasweb()
 
 
@@ -116,10 +116,8 @@ def check_dump1090_processes():
 
 def kill_all_dump1090_processes():
     for p in psutil.process_iter():
-        #print (p)
         if p.name().startswith('dump1090'):            
             print("Killing process {}".format(p.name()))
-            #system('sudo killall dump1090')
             system('sudo systemctl stop dump1090')
             p.kill()
 
@@ -149,7 +147,6 @@ def kill_all_ogn_processes():
     global ogn_path
 
     for p in psutil.process_iter():
-        #print(p)
         if p.name().startswith('ogn-'):
             print("Killing process {}".format(p.name()))
             p.kill()
@@ -160,7 +157,6 @@ def start_ogn():
 
     print("Starting OGN")
     system('sudo systemctl start rtlsdr-ogn')
-    print (system)
 
 def restart_ogn():
     kill_all_ogn_processes()
