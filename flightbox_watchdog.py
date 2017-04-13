@@ -96,9 +96,11 @@ def start_pcasweb():
     global pcasweb_command
 
     print("Starting pcasweb and stop NTP")
-    system('sudo systemctl start pcasweb.service')
     system('sudo systemctl stop ntp')
     time.sleep(5.0)
+    system('sudo systemctl start pcasweb.service')
+	time.sleep(5.0)
+
 
 def restart_pcasweb():
     kill_all_pcasweb_processes()
