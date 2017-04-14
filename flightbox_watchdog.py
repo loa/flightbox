@@ -99,7 +99,7 @@ def start_pcasweb():
     system('sudo systemctl stop ntp')
     time.sleep(5.0)
     system('sudo systemctl start pcasweb.service')
-	time.sleep(5.0)
+    time.sleep(5.0)
 
 
 def restart_pcasweb():
@@ -219,4 +219,3 @@ if __name__ == "__main__":
         #print('== Restarting PCASweb')
         restart_pcasweb()
         
-
