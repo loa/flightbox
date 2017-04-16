@@ -2,12 +2,14 @@
 
 """flightbox_watchdog.py: Script that checks if required FlightBox and OGN processes are running and (re-)starts them if required.
 Can be used to start and monitor FlightBox via a cronjob."""
-
+import serial
+import pynmea2
 from os import path
 from os import system
 import psutil
 from utils.detached_screen import DetachedScreen
 import time
+import subprocess
 
 __author__ = "Serge Guex"
 
@@ -48,6 +50,18 @@ pcasweb_command = 'sudo systemctl start pcasweb.service'
 
 # define command for starting ogn
 ogn_command = 'sudo systemctl start rtlsdr-ogn'
+
+
+#NTP
+def start_NTP():
+    print("Starting NTP")
+    subprocess.call('sudo systemctl restart ntp', shell=True)
+    time.sleep(3)
+    
+def stop_NTP():
+    print("Stoping NTP")
+    subprocess.call('sudo systemctl stop ntp', shell=True)
+    time.sleep(3)
 
 #Flightbox
 def check_flightbox_processes():
@@ -95,9 +109,7 @@ def kill_all_pcasweb_processes():
 def start_pcasweb():
     global pcasweb_command
 
-    print("Starting pcasweb and stop NTP")
-    system('sudo systemctl stop ntp')
-    time.sleep(5.0)
+    print("Starting pcasweb")
     system('sudo systemctl start pcasweb.service')
     time.sleep(5.0)
 
@@ -120,15 +132,14 @@ def kill_all_dump1090_processes():
     for p in psutil.process_iter():
         if p.name().startswith('dump1090'):            
             print("Killing process {}".format(p.name()))
-            system('sudo systemctl stop dump1090')
+            subprocess.call('sudo systemctl stop dump1090', shell=True)
             p.kill()
 
 def start_dump1090():
     global dump1090_command
 
-    print("Starting dump1090 and NTP")
-    system('sudo systemctl start ntp')
-    system('sudo systemctl start dump1090')
+    print("Starting dump1090")
+    subprocess.call('sudo systemctl restart dump1090', shell=True)
     time.sleep(5.0)
 
 def restart_dump1090():
@@ -158,7 +169,7 @@ def start_ogn():
     global ogn_path
 
     print("Starting OGN")
-    system('sudo systemctl start rtlsdr-ogn')
+    subprocess.call('sudo systemctl restart rtlsdr-ogn', shell=True)
 
 def restart_ogn():
     kill_all_ogn_processes()
@@ -166,56 +177,103 @@ def restart_ogn():
     start_ogn()
 
 
+def check_gps_fix():
+    ### initialize serial object
+    ser = None
+    fix = False
+
+    while True:
+         try:
+              # wait before attaching to serial port
+              time.sleep(2)
+              # create serial object
+              ser = serial.Serial('/dev/ttyAMA0',9600)
+              
+              # read loop
+              while True:
+                   try:
+                        # get line from serial device (blocking call)
+                        data = ser.readline().decode().strip()
+                   except:
+                        # in case read was unsuccessful, exit read loop
+                        break
+
+                   if data.startswith('$GPGSA'):
+                        msg = pynmea2.parse(data)
+                        msg.is_valid == True
+                        msg.render() == data
+                        #print ('\tMode:', msg.mode)
+                        #print ('\tMode fix type:', int(msg.mode_fix_type))
+              
+                        if msg.mode == 'A' and int(msg.mode_fix_type) > 1:
+                             print('GPS Fix')
+                             fix = True
+                             break
+              if fix == True:
+                   ser.close()
+                   break
+                   
+         except(KeyboardInterrupt, SystemExit):
+              # exit re-connect loop in case of termination is requested
+              break
+         finally:
+              if ser:
+                   ser.close()  
+
 # check if script is executed directly
 if __name__ == "__main__":
-    check_dump1090_processes()
-    check_ogn_processes()
-    check_flightbox_processes()
-    check_pcasweb_processes()
     
-    is_dump1090_restart_required = False
-    is_ogn_restart_required = False
-    is_flightbox_restart_required = False
-    is_pcasweb_restart_required = False
-
-    for p in required_dump1090_processes.keys():
-        if required_dump1090_processes[p]['status'] not in ['running', 'sleeping']:
-            print("{} not running".format(p))
-            is_dump1090_restart_required = True
-
-    for p in required_ogn_processes.keys():
-        if required_ogn_processes[p]['status'] not in ['running', 'sleeping']:
-            print("{} not running".format(p))
-            is_ogn_restart_required = True
-
-    for p in required_flightbox_processes.keys():
-        if required_flightbox_processes[p]['status'] not in ['running', 'sleeping']:
-            print("{} not running".format(p))
-            is_flightbox_restart_required = True            
-
-    for p in required_pcasweb_processes.keys():
-        if required_pcasweb_processes[p]['status'] not in ['running', 'sleeping']:
-            #print("{} not running".format(p))
-            is_pcasweb_restart_required = True
-
-
-    if is_dump1090_restart_required:
-        time.sleep(2.0)
-        print('== Restarting DUMP1090')
-        restart_dump1090()			
-
-    if is_ogn_restart_required:
-        time.sleep(5.0)
-        print('== Restarting OGN')
-        restart_ogn()
-			
-    if is_flightbox_restart_required:
-        time.sleep(2.0)
-        print('== Restarting FlightBox')
-        restart_flightbox()
+        check_gps_fix()
+        start_NTP()
+        check_ogn_processes()
+        check_dump1090_processes()
+        check_flightbox_processes()
+        check_pcasweb_processes()
         
-    if is_pcasweb_restart_required:
-        time.sleep(2.0)
-        #print('== Restarting PCASweb')
-        restart_pcasweb()
-        
+        is_dump1090_restart_required = False
+        is_ogn_restart_required = False
+        is_flightbox_restart_required = False
+        is_pcasweb_restart_required = False
+
+        for p in required_dump1090_processes.keys():
+            if required_dump1090_processes[p]['status'] not in ['running', 'sleeping']:
+                print("{} not running".format(p))
+                is_dump1090_restart_required = True
+
+        for p in required_ogn_processes.keys():
+            if required_ogn_processes[p]['status'] not in ['running', 'sleeping']:
+                print("{} not running".format(p))
+                is_ogn_restart_required = True
+
+        for p in required_flightbox_processes.keys():
+            if required_flightbox_processes[p]['status'] not in ['running', 'sleeping']:
+                print("{} not running".format(p))
+                is_flightbox_restart_required = True            
+
+        for p in required_pcasweb_processes.keys():
+            if required_pcasweb_processes[p]['status'] not in ['running', 'sleeping']:
+                #print("{} not running".format(p))
+                is_pcasweb_restart_required = True
+
+
+        if is_dump1090_restart_required:
+            time.sleep(2.0)
+            print('== Restarting DUMP1090')
+            restart_dump1090()
+
+        if is_ogn_restart_required:
+            time.sleep(5.0)
+            print('== Restarting OGN')
+            restart_ogn()
+                            
+        if is_flightbox_restart_required:
+            time.sleep(2.0)
+            print('== Restarting FlightBox, Stop NTP')
+            stop_NTP()
+            restart_flightbox()
+            
+        if is_pcasweb_restart_required:
+            time.sleep(2.0)
+            #print('== Restarting PCASweb')
+            restart_pcasweb()
+                    
