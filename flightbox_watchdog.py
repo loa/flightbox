@@ -56,7 +56,7 @@ ogn_command = 'sudo systemctl start rtlsdr-ogn'
 def start_NTP():
     print("Starting NTP")
     subprocess.call('sudo systemctl restart ntp', shell=True)
-    time.sleep(3)
+    time.sleep(20)
     
 def stop_NTP():
     print("Stoping NTP")
