@@ -181,6 +181,12 @@ def check_gps_fix():
     ### initialize serial object
     ser = None
     fix = False
+    # decouple green LED on PI from microSD
+    system("sudo bash -c \"echo none > /sys/class/leds/led0/trigger\"")
+    time.sleep(2)
+    # turn off the green LED on PI
+    system("sudo bash -c \"echo 1 > /sys/class/leds/led0/brightness\"")
+    time.sleep(2)
 
     while True:
          try:
@@ -207,6 +213,8 @@ def check_gps_fix():
               
                         if msg.mode == 'A' and int(msg.mode_fix_type) > 1:
                              print('GPS Fix')
+                             # turn on the green LED
+                             system("sudo bash -c \"echo 0 > /sys/class/leds/led0/brightness\"")
                              fix = True
                              break
               if fix == True:
