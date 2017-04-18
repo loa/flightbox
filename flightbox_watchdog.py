@@ -176,7 +176,13 @@ def restart_ogn():
     time.sleep(1.0)
     start_ogn()
 
-
+def start_SoftAP():
+    print('== Starting SoftAP')
+    subprocess.call('sudo bash /usr/sbin/flightbox-wifi.sh', shell=True)
+    time.sleep(10.0)
+    # turn on the green LED
+    system("sudo bash -c \"echo 0 > /sys/class/leds/led0/brightness\"")
+    
 def check_gps_fix():
     ### initialize serial object
     ser = None
@@ -187,14 +193,13 @@ def check_gps_fix():
     # turn off the green LED on PI
     system("sudo bash -c \"echo 1 > /sys/class/leds/led0/brightness\"")
     time.sleep(2)
-
+    
     while True:
          try:
               # wait before attaching to serial port
               time.sleep(2)
               # create serial object
               ser = serial.Serial('/dev/ttyAMA0',9600)
-              
               # read loop
               while True:
                    try:
@@ -208,13 +213,11 @@ def check_gps_fix():
                         msg = pynmea2.parse(data)
                         msg.is_valid == True
                         msg.render() == data
+                        print('== Wait for GPS 3D Fix')
                         #print ('\tMode:', msg.mode)
                         #print ('\tMode fix type:', int(msg.mode_fix_type))
-              
                         if msg.mode == 'A' and int(msg.mode_fix_type) > 1:
                              print('GPS Fix')
-                             # turn on the green LED
-                             system("sudo bash -c \"echo 0 > /sys/class/leds/led0/brightness\"")
                              fix = True
                              break
               if fix == True:
@@ -237,6 +240,8 @@ if __name__ == "__main__":
         check_dump1090_processes()
         check_flightbox_processes()
         check_pcasweb_processes()
+        start_SoftAP()
+        stop_NTP()
         
         is_dump1090_restart_required = False
         is_ogn_restart_required = False

@@ -47,7 +47,7 @@ class Index(object):
            print 'REBOOT',i
            #Do your code here
            time.sleep(1)
-           os.system("sudo bash /etc/init.d/ntprestart.sh &")
+           os.system("sudo reboot")
 		   
     
 if __name__ == "__main__":
