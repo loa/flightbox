@@ -218,6 +218,7 @@ def check_gps_fix():
                         #print ('\tMode fix type:', int(msg.mode_fix_type))
                         if msg.mode == 'A' and int(msg.mode_fix_type) > 1:
                              print('GPS Fix')
+							 system("sudo bash -c \"echo 0 > /sys/class/leds/led0/brightness\"")
                              fix = True
                              break
               if fix == True:
