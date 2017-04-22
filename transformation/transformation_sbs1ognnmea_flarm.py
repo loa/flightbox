@@ -184,7 +184,7 @@ def handle_ogn_data(data, aircraft, aircraft_lock, gnss_status):
             # get remaining parts
             position_data = data_parts[1:len(data_parts)]
 			
-			# beacon
+            # beacon
             m = re.match(r"^(.+?)>APRS,(.+?):/(\d{6})+h(\d{4}\.\d{2})(N|S)(.)(\d{5}\.\d{2})(E|W)(.)((\d{3})/(\d{3}))?/A=(\d{6})", beacon_data)            
             			
             if m:
@@ -242,7 +242,7 @@ def handle_ogn_data(data, aircraft, aircraft_lock, gnss_status):
             address_pattern = re.compile(r"id(\S{2})(\S{6})")
             climb_rate_pattern = re.compile(r"([\+\-]\d+)fpm")
             turn_rate_pattern = re.compile(r"([\+\-]\d+\.\d+)rot")
-            signal_strength_pattern = re.compile(r"(\d+\.\d+)dB")
+            signal_strength_pattern = re.compile(r"(\d+\.\d+)dB")            
             error_count_pattern = re.compile(r"(\d+)e")
             coordinates_extension_pattern = re.compile(r"\!W(.)(.)!")
             hear_ID_pattern = re.compile(r"hear(\w{4})")
@@ -265,7 +265,7 @@ def handle_ogn_data(data, aircraft, aircraft_lock, gnss_status):
                 address_match = address_pattern.match(position_data_part)
                 climb_rate_match = climb_rate_pattern.match(position_data_part)
                 turn_rate_match = turn_rate_pattern.match(position_data_part)
-                signal_strength_match = signal_strength_pattern.match(position_data_part)
+                signal_strength_match = signal_strength_pattern.match(position_data_part)                
                 error_count_match = error_count_pattern.match(position_data_part)
                 coordinates_extension_match = coordinates_extension_pattern.match(position_data_part)
                 hear_ID_match = hear_ID_pattern.match(position_data_part)
@@ -308,6 +308,9 @@ def handle_ogn_data(data, aircraft, aircraft_lock, gnss_status):
 
                 elif signal_strength_match is not None:
                     signal_strength = float(signal_strength_match.group(1))
+                    logger.info('signal_strength: {}'.format(signal_strength))
+                    # save data
+                    aircraft[identifier].signallevel = signal_strength
 
                 elif error_count_match is not None:
                     error_count = int(error_count_match.group(1))
@@ -460,7 +463,7 @@ def generate_flarm_messages(gnss_status, aircraft):
     my_tail = modec_parts[1]
     modec_sep = float(parser.get('DEFAULT','modec_sep'))
     modec_det = float(parser.get('DEFAULT','modec_det'))
-
+    
     if modec_det == 1: # ultra short
         modec_3= -29
         modec_2= -30
@@ -482,34 +485,6 @@ def generate_flarm_messages(gnss_status, aircraft):
     flarm_messages = []
     adsb = False
     
-    if my_tail == aircraft.identifier:
-        return None
-    
-    # check if plans are in sight
-#    if aircraft.identifier == 'AAAAAA': #no plane in sight
-#        """ generate PFLAA message """
-#        # PFLAU,<RX>,<TX>,<GPS>,<Power>,<AlarmLevel>,<RelativeBearing>,<AlarmType>,<RelativeVertical>,<RelativeDistance>,<ID>
-#        # indicate number of received devices
-#        rx = '0'
-#        # indicate no transmission
-#        tx = '0'
-#        # indicate airborne 3D fix
-#        gps = '2'
-#        # indicate power OK
-#        power = '1'
-#        # indicate no collision within next 18 seconds
-#        alarm_level = '0'
-#        relative_bearing = ''
-#        alarm_type = '0'
-#        relative_vertical = 0
-#        relative_distance = ''
-#        identifier = ''
-
-#        flarm_message_laa = pynmea2.ProprietarySentence('F', ['LAU', rx, tx, gps, power, alarm_level, relative_bearing, alarm_type, relative_vertical, relative_distance, identifier])
-#        #portOUT.write(str(flarm_message_laa).encode())
-#        flarm_messages.append(str(flarm_message_laa))
-#        logger.debug('FLARM no plane message: {}'.format(str(flarm_message_laa)))
-
     if gnss_status.longitude and gnss_status.latitude and aircraft.longitude and aircraft.latitude:
         """ generate PFLAA message ADS-B"""
         # PFLAA,<AlarmLevel>,<RelativeNorth>,<RelativeEast>, <RelativeVertical>,<IDType>,<ID>,<Track>,<TurnRate>,<GroundSpeed>, <ClimbRate>,<AcftType>
@@ -526,11 +501,19 @@ def generate_flarm_messages(gnss_status, aircraft):
         distance_north_m = utils.calculation.distance_north(initial_bearing, distance_m)
         distance_east_m = utils.calculation.distance_east(initial_bearing, distance_m)
 
-        # skip aircraft if distance is out of limits
+        # skip aircraft if distance is out of limits or same ICAO as own plane
         if not (distance_north_m >= DISTANCE_M_MIN and distance_north_m <= DISTANCE_M_MAX):
             return None
         if not (distance_east_m >= DISTANCE_M_MIN and distance_east_m <= DISTANCE_M_MAX):
             return None
+        
+        logger.debug('My ICAO: {}'.format(str(my_icao)))
+        logger.debug('Flarm/ADSB: {}'.format(str(aircraft.identifier)))
+
+        if my_icao == aircraft.identifier:
+            logger.debug('discard own plane') 
+            return None
+        
 
         # set relative distance
         relative_north = '{:.0f}'.format(min(max(distance_north_m, DISTANCE_M_MIN), DISTANCE_M_MAX))
@@ -544,9 +527,8 @@ def generate_flarm_messages(gnss_status, aircraft):
                 relative_vertical = '{:.0f}'.format(min(max(utils.conversion.feet_to_meters(aircraft.altitude - gnss_status.altitude), DISTANCE_M_MIN), DISTANCE_M_MAX))
             else:
                 relative_vertical = '{:.0f}'.format(min(max(utils.conversion.feet_to_meters(aircraft.altitude) - utils.calculation.altimeter(), DISTANCE_M_MIN), DISTANCE_M_MAX))
-                #relative_vertical = '{:.0f}'.format(min(max(utils.conversion.feet_to_meters(aircraft.altitude) - sensor.read_altitude(), DISTANCE_M_MIN), DISTANCE_M_MAX)) 
+                
         # indicate ICAO identifier
-		
         identifier_type = '1'
         identifier = aircraft.identifier
 		

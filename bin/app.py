@@ -24,8 +24,8 @@ class Index(object):
     def POST(self):
         form = web.input(name="Nobody", greet="Hello")        
         greeting = "%s, %s, %s" % (form.ICAO,form.modecsep,form.modecdet)
-        #flightID = "my_Tail: '%s'" % (form.tail)
-        flightICAO = "my_ICAO: '%s'" % (form.ICAO)
+        #flightID = "my_Tail: %s" % (form.tail)
+        flightICAO = "my_ICAO: %s" % (form.ICAO)
         flightMODECsep = "modec_sep: %s" % (form.modecsep)
         flightMODECdet = "modec_det: %s" % (form.modecdet)
         
