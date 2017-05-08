@@ -96,7 +96,7 @@
  	    <select id="ICAO" name="ICAO">
   				<option value="4B0652,HBCKG">HBCKG</option>
 				<option value="4B07BF,HBCYH">HBCYH</option>
-  				<option value="4B066B,HBCLH">HBCLH</option>
+  				<option value="4B066D,HBCLH">HBCLH</option>
   				<option value="4B0615,HBCHX">HBCHX</option>
 				<option value="4B2881,HBPIV">HBPIV</option>
 				<option value="DD50E2,TEST">TEST</option>
@@ -117,11 +117,25 @@
   				<option value="4">Long Range</option>
 			</select> 
             <br />
-            <input type="submit" value="SAVE and Reboot" />
+            <input name="submit" type="submit" value="SAVE and Reboot" />
          </fieldset>
       </form>
 <br />
 <label for="description">    FlightBox Log:   <a href="static/log.html">Log data</a></label>
+<br />
+<br />
+	<form method="post"  action="">
+         <fieldset>
+	    <label for="description">Set Flarm ON or OFF:</label>
+	    <select  id="flarm" name="flarm">
+  				<option value="1">ON</option>
+				<option value="2">OFF</option>
+			</select> 
+
+            <input name="submit" type="submit" value="FLARM" />
+         </fieldset>
+      </form>
+
       </div>
    </body>
 </html>
