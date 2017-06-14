@@ -91,21 +91,11 @@ def restart_flightbox():
     start_flightbox()
 
 #PCAS WEB
-def check_pcasweb_processes():
-    global required_pcasweb_processes
-
-    for p in psutil.process_iter():
-        if p.name() in required_pcasweb_processes.keys():
-            required_pcasweb_processes[p.name()]['status'] = p.status()
-
 def kill_all_pcasweb_processes():
-    for p in psutil.process_iter():
-        if p.name().startswith('pcasweb.sh'):            
-            print("Killing process {}".format(p.name()))
-            system('sudo killall pcasweb')
-            system('sudo systemctl stop pcasweb.service')
-            #p.kill()
 
+    print("Stopping pcasweb")
+    system('sudo systemctl stop pcasweb.service')
+    
 def start_pcasweb():
     global pcasweb_command
 
@@ -179,9 +169,8 @@ def restart_ogn():
 def start_SoftAP():
     print('== Starting SoftAP')
     subprocess.call('sudo bash /usr/sbin/flightbox-wifi.sh', shell=True)
-    time.sleep(10.0)
     # turn on the green LED
-    system("sudo bash -c \"echo 0 > /sys/class/leds/led0/brightness\"")
+    time.sleep(10.0)
     
 def check_gps_fix():
     ### initialize serial object
@@ -192,6 +181,8 @@ def check_gps_fix():
     time.sleep(2)
     # turn off the green LED on PI
     system("sudo bash -c \"echo 1 > /sys/class/leds/led0/brightness\"")
+    
+
     time.sleep(2)
     
     while True:
@@ -218,10 +209,11 @@ def check_gps_fix():
                         #print ('\tMode fix type:', int(msg.mode_fix_type))
                         if msg.mode == 'A' and int(msg.mode_fix_type) > 1:
                              print('GPS Fix')
-							 system("sudo bash -c \"echo 0 > /sys/class/leds/led0/brightness\"")
+                             system("sudo bash -c \"echo 0 > /sys/class/leds/led0/brightness\"")
                              fix = True
                              break
               if fix == True:
+                   time.sleep(10)
                    ser.close()
                    break
                    
@@ -235,19 +227,18 @@ def check_gps_fix():
 # check if script is executed directly
 if __name__ == "__main__":
     
+        restart_pcasweb()
         check_gps_fix()
         start_NTP()
         check_ogn_processes()
         check_dump1090_processes()
         check_flightbox_processes()
-        check_pcasweb_processes()
-        start_SoftAP()
         stop_NTP()
         
         is_dump1090_restart_required = False
         is_ogn_restart_required = False
         is_flightbox_restart_required = False
-        is_pcasweb_restart_required = False
+
 
         for p in required_dump1090_processes.keys():
             if required_dump1090_processes[p]['status'] not in ['running', 'sleeping']:
@@ -263,11 +254,6 @@ if __name__ == "__main__":
             if required_flightbox_processes[p]['status'] not in ['running', 'sleeping']:
                 print("{} not running".format(p))
                 is_flightbox_restart_required = True            
-
-        for p in required_pcasweb_processes.keys():
-            if required_pcasweb_processes[p]['status'] not in ['running', 'sleeping']:
-                #print("{} not running".format(p))
-                is_pcasweb_restart_required = True
 
 
         if is_dump1090_restart_required:
@@ -286,8 +272,6 @@ if __name__ == "__main__":
             stop_NTP()
             restart_flightbox()
             
-        if is_pcasweb_restart_required:
-            time.sleep(2.0)
             #print('== Restarting PCASweb')
             restart_pcasweb()
                     
