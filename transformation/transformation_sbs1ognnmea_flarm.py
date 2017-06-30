@@ -308,7 +308,7 @@ def handle_ogn_data(data, aircraft, aircraft_lock, gnss_status):
 
                 elif signal_strength_match is not None:
                     signal_strength = float(signal_strength_match.group(1))
-                    logger.info('signal_strength: {}'.format(signal_strength))
+                    # logger.info('signal_strength: {}'.format(signal_strength))
                     # save data
                     aircraft[identifier].signallevel = signal_strength
 
@@ -509,6 +509,7 @@ def generate_flarm_messages(gnss_status, aircraft):
         
         logger.debug('My ICAO: {}'.format(str(my_icao)))
         logger.debug('Flarm/ADSB: {}'.format(str(aircraft.identifier)))
+        logger.debug('Data Typ: {}'.format(str(aircraft.datatype)))
 
         if my_icao == aircraft.identifier:
             logger.debug('discard own plane') 
@@ -537,7 +538,10 @@ def generate_flarm_messages(gnss_status, aircraft):
             identifier = aircraft.identifier+"!"+aircraft.callsign
         elif aircraft.datatype == 'F':
             identifier_type = '2'
-            identifier = aircraft.identifier+"!"+"Mode-F"
+            identifier = aircraft.identifier+"!"+"Mode-F"      
+
+        identifier = str(identifier)
+        aircraft.datatype = str(aircraft.datatype)
             
         track = ''
         if aircraft.course is not None:
@@ -578,13 +582,15 @@ def generate_flarm_messages(gnss_status, aircraft):
             alarm_type = '0'
 
         if alarm == True:
-            identifier = aircraft.identifier
+            identifier = str(aircraft.identifier)
 
 			
         flarm_message_laa = pynmea2.ProprietarySentence('F', ['LAA', alarm_level, relative_north, relative_east, relative_vertical, identifier_type, identifier, track, turn_rate, ground_speed, climb_rate, acft_type])
-        #portOUT.write(str(flarm_message_laa).encode())
         flarm_messages.append(str(flarm_message_laa))
-        logger.info('ADSB: {}'.format(str(flarm_message_laa)))
+        if aircraft.datatype == 'F':
+            logger.info('FLARM: {}'.format(str(flarm_message_laa)))
+        else:
+            logger.info('ADSB: {}'.format(str(flarm_message_laa)))
 
 #        if gnss_status.altitude:
         if alarm == True:
@@ -607,8 +613,8 @@ def generate_flarm_messages(gnss_status, aircraft):
             relative_distance = '{:.0f}'.format(min(max(distance_m, 0), 2147483647))
 
             flarm_message_laa = pynmea2.ProprietarySentence('F', ['LAU', rx, tx, gps, power, alarm_level, relative_bearing, alarm_type, relative_vertical, relative_distance, identifier])
-            flarm_messages.append(str(flarm_message_laa))
-            logger.info('ADSB: {}'.format(str(flarm_message_laa)))
+            flarm_messages.append(str(flarm_message_laa))  
+            logger.info('ALARM: {}'.format(str(flarm_message_laa)))
             
         else:
             rx = '1'
@@ -676,11 +682,11 @@ def generate_flarm_messages(gnss_status, aircraft):
             #relative_north = '29100' # 15.0NM 29100m
 			
         if alarm == True:
-            identifier = aircraft.identifier
+            identifier = str(aircraft.identifier)
 
         relative_east = ''
         # indicate ICAO identifier
-        identifier = aircraft.identifier
+        identifier = str(aircraft.identifier)
         #identifier = aircraft.identifier+"!"+"Mode-C"
         identifier_type = '1'
         track = ''

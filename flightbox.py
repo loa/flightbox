@@ -12,7 +12,7 @@ import setproctitle
 import time
 
 #enable asyncio debug mode
-os.environ['PYTHONASYNCIODEBUG'] = '1'
+#os.environ['PYTHONASYNCIODEBUG'] = '1'
 
 from data_hub.data_hub_worker import DataHubWorker
 from input.test_data_generator import TestDataGenerator

@@ -56,21 +56,14 @@ ogn_command = 'sudo systemctl start rtlsdr-ogn'
 def start_NTP():
     print("Starting NTP")
     subprocess.call('sudo systemctl restart ntp', shell=True)
-    time.sleep(20)
+    time.sleep(10)
     
 def stop_NTP():
-    print("Stoping NTP")
+    print("Stopping NTP")
     subprocess.call('sudo systemctl stop ntp', shell=True)
     time.sleep(3)
 
 #Flightbox
-def check_flightbox_processes():
-    global required_flightbox_processes
-
-    for p in psutil.process_iter():
-        if p.name() in required_flightbox_processes.keys():
-            required_flightbox_processes[p.name()]['status'] = p.status()
-
 def kill_all_flightbox_processes():
     for p in psutil.process_iter():
         if p.name().startswith('flightbox'):
@@ -103,7 +96,6 @@ def start_pcasweb():
     system('sudo systemctl start pcasweb.service')
     time.sleep(5.0)
 
-
 def restart_pcasweb():
     kill_all_pcasweb_processes()
     time.sleep(5.0)
@@ -111,13 +103,6 @@ def restart_pcasweb():
 
 
 #DUMP1090
-def check_dump1090_processes():
-    global required_dump1090_processes
-
-    for p in psutil.process_iter():
-        if p.name() in required_dump1090_processes.keys():
-            required_dump1090_processes[p.name()]['status'] = p.status()
-
 def kill_all_dump1090_processes():
     for p in psutil.process_iter():
         if p.name().startswith('dump1090'):            
@@ -138,21 +123,11 @@ def restart_dump1090():
     start_dump1090()
 
 #OGN
-def check_ogn_processes():
-    global required_ogn_processes
-
-    for p in psutil.process_iter():
-        if p.name() in required_ogn_processes.keys():
-            required_ogn_processes[p.name()]['status'] = p.status()
-
-
-def kill_all_ogn_processes():
+def stop_ogn():
     global ogn_path
-
-    for p in psutil.process_iter():
-        if p.name().startswith('ogn-'):
-            print("Killing process {}".format(p.name()))
-            p.kill()
+    
+    print("Stopping OGN")
+    subprocess.call('sudo systemctl stop rtlsdr-ogn', shell=True)
 
 
 def start_ogn():
@@ -162,58 +137,58 @@ def start_ogn():
     subprocess.call('sudo systemctl restart rtlsdr-ogn', shell=True)
 
 def restart_ogn():
-    kill_all_ogn_processes()
-    time.sleep(1.0)
+    stop_ogn()
+    time.sleep(2.0)
     start_ogn()
 
-def start_SoftAP():
-    print('== Starting SoftAP')
-    subprocess.call('sudo bash /usr/sbin/flightbox-wifi.sh', shell=True)
-    # turn on the green LED
-    time.sleep(10.0)
-    
+
+#GPS    
 def check_gps_fix():
     ### initialize serial object
+    print('== GPS CHECK')
     ser = None
     fix = False
     # decouple green LED on PI from microSD
     system("sudo bash -c \"echo none > /sys/class/leds/led0/trigger\"")
-    time.sleep(2)
+    time.sleep(1)
     # turn off the green LED on PI
     system("sudo bash -c \"echo 1 > /sys/class/leds/led0/brightness\"")
-    
-
-    time.sleep(2)
-    
+    time.sleep(1)
+    print('== LED CHECK')
     while True:
          try:
               # wait before attaching to serial port
               time.sleep(2)
               # create serial object
               ser = serial.Serial('/dev/ttyAMA0',9600)
+              
               # read loop
+              print('== Loop Starts')
               while True:
                    try:
+                        # wait before attaching to serial port
+                        time.sleep(1)
                         # get line from serial device (blocking call)
                         data = ser.readline().decode().strip()
+                        print ('DATA:'), data
                    except:
                         # in case read was unsuccessful, exit read loop
                         break
-
+                   
                    if data.startswith('$GPGSA'):
                         msg = pynmea2.parse(data)
                         msg.is_valid == True
                         msg.render() == data
-                        print('== Wait for GPS 3D Fix')
+                        print(' Wait for GPS 3D Fix')
                         #print ('\tMode:', msg.mode)
                         #print ('\tMode fix type:', int(msg.mode_fix_type))
-                        if msg.mode == 'A' and int(msg.mode_fix_type) > 1:
-                             print('GPS Fix')
+                        if msg.mode == 'A' and int(msg.mode_fix_type) >= 1:
+                             print('== GPS Fix')
                              system("sudo bash -c \"echo 0 > /sys/class/leds/led0/brightness\"")
                              fix = True
                              break
               if fix == True:
-                   time.sleep(10)
+                   time.sleep(1)
                    ser.close()
                    break
                    
@@ -227,51 +202,13 @@ def check_gps_fix():
 # check if script is executed directly
 if __name__ == "__main__":
     
-        restart_pcasweb()
+        kill_all_flightbox_processes
         check_gps_fix()
         start_NTP()
-        check_ogn_processes()
-        check_dump1090_processes()
-        check_flightbox_processes()
+        restart_ogn()
+        restart_dump1090()
         stop_NTP()
-        
-        is_dump1090_restart_required = False
-        is_ogn_restart_required = False
-        is_flightbox_restart_required = False
-
-
-        for p in required_dump1090_processes.keys():
-            if required_dump1090_processes[p]['status'] not in ['running', 'sleeping']:
-                print("{} not running".format(p))
-                is_dump1090_restart_required = True
-
-        for p in required_ogn_processes.keys():
-            if required_ogn_processes[p]['status'] not in ['running', 'sleeping']:
-                print("{} not running".format(p))
-                is_ogn_restart_required = True
-
-        for p in required_flightbox_processes.keys():
-            if required_flightbox_processes[p]['status'] not in ['running', 'sleeping']:
-                print("{} not running".format(p))
-                is_flightbox_restart_required = True            
-
-
-        if is_dump1090_restart_required:
-            time.sleep(2.0)
-            print('== Restarting DUMP1090')
-            restart_dump1090()
-
-        if is_ogn_restart_required:
-            time.sleep(5.0)
-            print('== Restarting OGN')
-            restart_ogn()
-                            
-        if is_flightbox_restart_required:
-            time.sleep(2.0)
-            print('== Restarting FlightBox, Stop NTP')
-            stop_NTP()
-            restart_flightbox()
-            
-            #print('== Restarting PCASweb')
-            restart_pcasweb()
-                    
+        restart_flightbox()           
+        restart_pcasweb()
+         
+                   
